@@ -90,7 +90,7 @@ class FlappyBirdGame {
 
     // Photo Background Image
     this.bgImg = new Image();
-    this.bgImg.src = 'background.jpg';
+    this.bgImg.src = 'background.jpg?v=4';
     this.bgScroll = 0;
 
     // Visual Effects
@@ -471,8 +471,9 @@ class FlappyBirdGame {
 
     // Background scrolling
     if (this.state !== GameState.GAMEOVER && this.state !== GameState.PAUSED) {
+      const bgW = (this.bgImg && this.bgImg.naturalWidth > 0) ? this.bgImg.naturalWidth : 569;
       this.groundScroll = (this.groundScroll + CONFIG.pipeSpeed * dt) % 24;
-      this.bgScroll = (this.bgScroll + CONFIG.bgSpeed * dt) % 780;
+      this.bgScroll = (this.bgScroll + CONFIG.bgSpeed * dt) % bgW;
       this.cityScroll = (this.cityScroll + CONFIG.citySpeed * dt) % 400;
       this.cloudsScroll = (this.cloudsScroll + CONFIG.cloudsSpeed * dt) % 400;
     }
@@ -655,7 +656,7 @@ class FlappyBirdGame {
 
   drawBackground() {
     if (this.bgImg && this.bgImg.complete && this.bgImg.naturalWidth > 0) {
-      const bgW = 780; // Seamless panoramic loop width
+      const bgW = this.bgImg.naturalWidth;
       const bgH = this.canvas.height;
       const x = -(this.bgScroll % bgW);
 
@@ -663,9 +664,12 @@ class FlappyBirdGame {
       if (x + bgW < this.canvas.width) {
         this.ctx.drawImage(this.bgImg, x + bgW, 0, bgW, bgH);
       }
+      if (x + bgW * 2 < this.canvas.width) {
+        this.ctx.drawImage(this.bgImg, x + bgW * 2, 0, bgW, bgH);
+      }
 
       // Soft vignette tint to enhance pipe readability and contrast
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
       this.drawSky();
