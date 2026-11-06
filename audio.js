@@ -13,6 +13,13 @@ class SoundManager {
     this.voiceAudio.preload = 'auto';
     this._wasPlayingBeforePause = false;
 
+    // Custom Out / Game Over Voice Audio (1.2s clip)
+    this.dieVoice = new Audio('die_sound.ogg');
+    this.dieVoice.volume = 1.0;
+    this.dieVoice.preload = 'auto';
+    this.dieBuffer = null;
+    this.dieVoiceTimer = null;
+
     this.initUserInteraction();
   }
 
@@ -30,6 +37,10 @@ class SoundManager {
       if (this.voiceAudio) {
         this.voiceAudio.load();
       }
+      if (this.dieVoice) {
+        this.dieVoice.load();
+      }
+      this.loadDieBuffer();
       window.removeEventListener('keydown', unlockAudio);
       window.removeEventListener('touchstart', unlockAudio);
       window.removeEventListener('mousedown', unlockAudio);
@@ -38,6 +49,34 @@ class SoundManager {
     window.addEventListener('keydown', unlockAudio);
     window.addEventListener('touchstart', unlockAudio);
     window.addEventListener('mousedown', unlockAudio);
+  }
+
+  async loadDieBuffer() {
+    try {
+      this.ensureContext();
+      if (!this.ctx) return;
+      const response = await fetch('die_sound.ogg');
+      const arrayBuffer = await response.arrayBuffer();
+      const decoded = await this.ctx.decodeAudioData(arrayBuffer);
+
+      // Cut exactly 1.2 seconds from the audio
+      const targetDuration = 1.2;
+      const rate = decoded.sampleRate;
+      const targetFrames = Math.min(decoded.length, Math.floor(rate * targetDuration));
+      const cutBuffer = this.ctx.createBuffer(decoded.numberOfChannels, targetFrames, rate);
+
+      for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
+        const srcData = decoded.getChannelData(ch);
+        const dstData = cutBuffer.getChannelData(ch);
+        for (let i = 0; i < targetFrames; i++) {
+          dstData[i] = srcData[i];
+        }
+      }
+      this.dieBuffer = cutBuffer;
+    } catch (e) {
+      // Graceful fallback to HTML5 Audio with 1.2s timeout
+      console.log('WebAudio dieBuffer fallback to HTMLAudio:', e);
+    }
   }
 
   ensureContext() {
@@ -57,6 +96,9 @@ class SoundManager {
     if (this.voiceAudio) {
       this.voiceAudio.muted = this.isMuted;
     }
+    if (this.dieVoice) {
+      this.dieVoice.muted = this.isMuted;
+    }
     return this.isMuted;
   }
 
@@ -67,12 +109,23 @@ class SoundManager {
         this.voiceAudio.currentTime = 0;
       } catch (e) {}
     }
+    if (this.dieVoice) {
+      try {
+        if (this.dieVoiceTimer) clearTimeout(this.dieVoiceTimer);
+        this.dieVoice.pause();
+        this.dieVoice.currentTime = 0;
+      } catch (e) {}
+    }
   }
 
   pauseVoice() {
     if (this.voiceAudio && !this.voiceAudio.paused) {
       this.voiceAudio.pause();
       this._wasPlayingBeforePause = true;
+    }
+    if (this.dieVoice && !this.dieVoice.paused) {
+      this.dieVoice.pause();
+      if (this.dieVoiceTimer) clearTimeout(this.dieVoiceTimer);
     }
   }
 
@@ -230,10 +283,31 @@ class SoundManager {
   }
 
   /**
-   * Sound: Falling / Game over ground smack
+   * Sound: Player Got Out (Death / Game Over)
+   * Plays the 1.2s cut voice audio mixed with the game over sound!
    */
   playDie() {
+    this.stopVoice();
     if (this.isMuted) return;
+
+    // 1. Play the 1.2s cut voice clip
+    if (this.dieBuffer && this.ctx && this.ctx.state === 'running') {
+      try {
+        const source = this.ctx.createBufferSource();
+        source.buffer = this.dieBuffer;
+        const gain = this.ctx.createGain();
+        gain.gain.value = 1.0;
+        source.connect(gain);
+        gain.connect(this.ctx.destination);
+        source.start(0, 0, 1.2); // Plays exactly 1.2 seconds!
+      } catch (e) {
+        this.playDieHtmlFallback();
+      }
+    } else {
+      this.playDieHtmlFallback();
+    }
+
+    // 2. Synthesized impact thud / falling sound
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -243,10 +317,10 @@ class SoundManager {
       const gain = this.ctx.createGain();
 
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(400, now);
-      osc.frequency.linearRampToValueAtTime(100, now + 0.35);
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.linearRampToValueAtTime(90, now + 0.35);
 
-      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.setValueAtTime(0.25, now);
       gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
 
       osc.connect(gain);
@@ -256,6 +330,26 @@ class SoundManager {
       osc.stop(now + 0.35);
     } catch (e) {
       console.warn("Audio play error", e);
+    }
+  }
+
+  playDieHtmlFallback() {
+    if (!this.dieVoice) return;
+    try {
+      if (this.dieVoiceTimer) clearTimeout(this.dieVoiceTimer);
+      this.dieVoice.currentTime = 0;
+      const p = this.dieVoice.play();
+      if (p !== undefined) p.catch(() => {});
+
+      // Cut audio at exactly 1.2 seconds (1200ms)
+      this.dieVoiceTimer = setTimeout(() => {
+        if (this.dieVoice) {
+          this.dieVoice.pause();
+          this.dieVoice.currentTime = 0;
+        }
+      }, 1200);
+    } catch (e) {
+      console.warn('Die voice fallback error:', e);
     }
   }
 }
