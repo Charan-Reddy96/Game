@@ -39,7 +39,7 @@ const LEVELS = [
   { level: 1, minScore: 0,  pipeGap: 175, pipeSpeed: 105, spawnInterval: 2.1, name: "LEVEL 1 - EASY BREEZE" },
   { level: 2, minScore: 8,  pipeGap: 165, pipeSpeed: 112, spawnInterval: 2.0, name: "LEVEL 2 - CANYON FLIGHT" },
   { level: 3, minScore: 20, pipeGap: 156, pipeSpeed: 120, spawnInterval: 1.9, name: "LEVEL 3 - RIVER RAPIDS" },
-  { level: 4, minScore: 35, pipeGap: 148, pipeSpeed: 128, spawnInterval: 1.8, name: "LEVEL 4 - GUTAM MASTER" },
+  { level: 4, minScore: 35, pipeGap: 148, pipeSpeed: 128, spawnInterval: 1.8, name: "LEVEL 4 - GUTAM GADU" },
   { level: 5, minScore: 55, pipeGap: 142, pipeSpeed: 135, spawnInterval: 1.7, name: "LEVEL 5 - LEGENDARY" },
 ];
 

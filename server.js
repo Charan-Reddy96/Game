@@ -48,6 +48,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`GUTAMGAME server listening on http://localhost:${PORT}/`);
+  console.log(`GUTAM GADU server listening on http://localhost:${PORT}/`);
 });
 

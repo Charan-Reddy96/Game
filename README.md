@@ -1,4 +1,4 @@
-# GUTAMGAME
+# GUTAM GADU
 
 A polished, responsive arcade game built using vanilla HTML5 Canvas, modern CSS, and JavaScript with synthesized arcade audio via Web Audio API.
 
