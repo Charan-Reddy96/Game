@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GUTAM's GAME</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@600;700&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+    <!-- Top HUD Overlay -->
+    <div id="hud">
+      <div id="level-badge">LVL 1</div>
+      <div id="score-display">0</div>
+      <button id="mute-btn" title="Toggle Sound (M)" aria-label="Mute Audio">🔊</button>
+    </div>
+
+    <!-- Level Up Notification Banner -->
+    <div id="level-up-toast" class="level-toast hidden">
+      <div class="level-toast-title">⭐ LEVEL UP! ⭐</div>
+      <div id="level-toast-desc" class="level-toast-desc">LEVEL 2 - CANYON FLIGHT</div>
+    </div>
+
+    <!-- Start / Idle Screen Overlay -->
+    <div id="start-screen" class="screen">
+      <div class="logo">
+        <span class="logo-flappy">GUTAM</span>
+        <span class="logo-bird">GAME</span>
+      </div>
+      <div class="character-preview">
+        <img src="gutam_player_bordered.png" alt="Gutam Avatar" class="preview-avatar">
+      </div>
+      <div class="instructions">
+        <p class="blink">TAP / PRESS SPACE TO FLY</p>
+        <p class="sub-text">Avoid the pipes and don't touch the ground!</p>
+      </div>
+      <div class="controls-legend">
+        <span>🎮 <b>Space / Click</b>: Flap</span>
+        <span>⏸ <b>P</b>: Pause</span>
+        <span>🔇 <b>M</b>: Mute</span>
+      </div>
+    </div>
+
+    <!-- Pause Screen Overlay -->
+    <div id="pause-screen" class="screen hidden">
+      <div class="banner">PAUSED</div>
+      <p class="sub-text">Press <b>P</b> or Tap to Resume</p>
+    </div>
+
+    <!-- Game Over Screen Overlay -->
+    <div id="gameover-screen" class="screen hidden">
+      <div class="gameover-title">GAME OVER</div>
+      <div class="scoreboard">
+        <div class="medal-box">
+          <span class="label">MEDAL</span>
+          <div id="medal" class="medal-none">-</div>
+        </div>
+        <div class="stats-box">
+          <div class="stat-row">
+            <span class="stat-label">LEVEL</span>
+            <span id="final-level" class="stat-val">1</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">SCORE</span>
+            <span id="final-score" class="stat-val">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">BEST</span>
+            <span id="best-score" class="stat-val">0</span>
+          </div>
+        </div>
+      </div>
+      <div id="new-high-score-badge" class="badge-new hidden">NEW BEST!</div>
+      <button id="restart-btn" class="game-btn">PLAY AGAIN</button>
+      <p class="sub-text">Press <b>Space</b> or <b>R</b> to Restart</p>
+    </div>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+
+</html>
