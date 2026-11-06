@@ -175,6 +175,7 @@ class FlappyBirdGame {
     // Reset Level & Gap
     this.currentLevel = 1;
     this.applyLevel(1, false);
+    if (this.audio && this.audio.stopVoice) this.audio.stopVoice();
     if (this.levelToastTimeout) clearTimeout(this.levelToastTimeout);
     this.levelToast.classList.add('hidden');
 
@@ -341,9 +342,11 @@ class FlappyBirdGame {
   togglePause() {
     if (this.state === GameState.PLAYING) {
       this.state = GameState.PAUSED;
+      if (this.audio.pauseVoice) this.audio.pauseVoice();
       this.syncUI();
     } else if (this.state === GameState.PAUSED) {
       this.state = GameState.PLAYING;
+      if (this.audio.resumeVoice) this.audio.resumeVoice();
       this.lastTime = performance.now();
       this.syncUI();
     }

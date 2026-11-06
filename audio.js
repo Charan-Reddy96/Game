@@ -6,6 +6,13 @@ class SoundManager {
   constructor() {
     this.ctx = null;
     this.isMuted = false;
+
+    // Custom Tap Voice Dialogue Audio
+    this.voiceAudio = new Audio('tap_sound.ogg');
+    this.voiceAudio.volume = 0.85;
+    this.voiceAudio.preload = 'auto';
+    this._wasPlayingBeforePause = false;
+
     this.initUserInteraction();
   }
 
@@ -19,6 +26,9 @@ class SoundManager {
       }
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume();
+      }
+      if (this.voiceAudio) {
+        this.voiceAudio.load();
       }
       window.removeEventListener('keydown', unlockAudio);
       window.removeEventListener('touchstart', unlockAudio);
@@ -44,14 +54,56 @@ class SoundManager {
 
   toggleMute() {
     this.isMuted = !this.isMuted;
+    if (this.voiceAudio) {
+      this.voiceAudio.muted = this.isMuted;
+    }
     return this.isMuted;
   }
 
+  stopVoice() {
+    if (this.voiceAudio) {
+      try {
+        this.voiceAudio.pause();
+        this.voiceAudio.currentTime = 0;
+      } catch (e) {}
+    }
+  }
+
+  pauseVoice() {
+    if (this.voiceAudio && !this.voiceAudio.paused) {
+      this.voiceAudio.pause();
+      this._wasPlayingBeforePause = true;
+    }
+  }
+
+  resumeVoice() {
+    if (this.voiceAudio && this._wasPlayingBeforePause && !this.isMuted) {
+      this.voiceAudio.play().catch(() => {});
+      this._wasPlayingBeforePause = false;
+    }
+  }
+
   /**
-   * Sound: Wing Flap (upward pitch chirp)
+   * Sound: Wing Flap / Tap Screen
+   * Plays the custom voice dialogue smoothly on tap, mixed with crisp jump whoosh.
    */
   playFlap() {
     if (this.isMuted) return;
+
+    // 1. Play Voice Dialogue on Tap
+    if (this.voiceAudio) {
+      try {
+        if (this.voiceAudio.paused || this.voiceAudio.ended) {
+          this.voiceAudio.currentTime = 0;
+          const p = this.voiceAudio.play();
+          if (p !== undefined) p.catch(() => {});
+        }
+      } catch (e) {
+        console.warn('Voice play error:', e);
+      }
+    }
+
+    // 2. Mix in crisp jump chirp
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -64,7 +116,7 @@ class SoundManager {
       osc.frequency.setValueAtTime(420, now);
       osc.frequency.exponentialRampToValueAtTime(780, now + 0.11);
 
-      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.11);
 
       osc.connect(gain);
@@ -150,6 +202,7 @@ class SoundManager {
    * Sound: Collision / Hit pipe (sharp thud / burst)
    */
   playHit() {
+    this.stopVoice();
     if (this.isMuted) return;
     this.ensureContext();
     if (!this.ctx) return;
